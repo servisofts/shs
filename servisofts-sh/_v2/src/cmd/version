@@ -1,0 +1,18 @@
+#!/bin/bash
+_version_DESCRIPTION() {
+   local desc="Display version"
+   echo "$desc"
+}
+
+_version() {
+
+   if [ $(opt -h $@) ]; then
+      _help $*
+      exit
+   fi
+
+   console -a "$NAME version"
+   console "$VERSION"
+}
+
+export_cmd "version"

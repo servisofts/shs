@@ -1,0 +1,45 @@
+#!/bin/bash
+
+shelp() {
+   sconsole -w "Usage:   $NAME [OPTIONS] COMMAND"
+   sconsole " "
+   sconsole "Options:"
+   # JSON oprion
+   keys=$(JSON $1 keys)
+   for key in $keys; do
+      obj=$(JSON $1 get $key)
+      s=$(JSON obj get s)
+      l=$(JSON obj get l)
+      param=$(JSON obj get param)
+      description=$(JSON obj get detail)
+      to_print="$s $l"
+      if [[ $param ]]; then
+         to_print="$to_print[$param]"
+      fi
+      size=${#description}
+      printf '%b' "\e${Green}"
+      printf '%-20s' "  $to_print"
+      printf '%b' "\e${Clean}"
+      printf "%-${size}s\n" "$description"
+   done
+   sconsole " "
+   sconsole "Commands:"
+   keys=$(JSON $2 keys)
+   for key in $keys; do
+      obj=$(JSON $2 get $key)
+      name=$key
+      description=$obj
+      size=${#description}
+      printf '%b' "\e${Green}"
+      printf '%-20s' "  $name"
+      printf '%b' "\e${Clean}"
+      printf "%-${size}s\n" "$description"
+   done
+
+   sconsole " "
+   sconsole "Run '$NAME COMMAND --help' for more information on a command."
+   sconsole " "
+   sconsole "To get more help with $NAME, check out our guides at $REPOSITORY"
+
+}
+# require "json_usage"

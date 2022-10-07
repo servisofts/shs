@@ -1,0 +1,62 @@
+#!/bin/bash
+_log() {
+    echo $* >&2
+}
+_error() {
+    _log "SJObject $1"
+    exit 1
+}
+_exist() {
+    if [[ ! $2 ]]; then
+        _error "$1 , not found"
+    fi
+}
+
+SJObject() {
+    _exist "[name]" $1
+    _exist "[command]" $2
+    # instance=${!1}
+    case "${2}" in
+    "parse")
+        _sjo_parse $*
+        ;;
+
+    esac
+}
+
+# $1=name  $2=parse $3=json_in_str
+_sjo_parse() {
+    instance=${!1}
+    _exist "parse [str]" $3
+    data_str=$3
+    _verify_integrity $3
+    export "$1=$data_str"
+}
+
+# $1=json_in_str
+_verify_integrity() {
+    str=$1
+    list=""
+    lvl=0
+    n=0
+    while read -n1 char; do
+        n=$((n + 1))
+        case "${char}" in
+        "{")
+            lvl=$((lvl + 1))
+            continue
+            ;;
+        "}")
+            lvl=$((lvl - 1))
+            continue
+            ;;
+        "}")
+            lvl=$((lvl - 1))
+            continue
+            ;;
+        esac
+    done < <(echo -n "$str")
+    if [[ lvl -ne 0 ]]; then
+        _error "_verify_integrity error"
+    fi
+}

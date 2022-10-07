@@ -1,0 +1,147 @@
+#!/bin/bash
+_error() {
+    sconsole >&2 -e "SJObject $1"
+    exit 1
+}
+_exist() {
+    if [[ ! $2 ]]; then
+        _error "$1 , not found"
+    fi
+}
+SJObject() {
+    _exist "[name]" $1
+    _exist "[command]" $2
+
+    instance=${!1}
+
+    case "${2}" in
+    "new")
+        export "$1={}"
+        ;;
+    "parse")
+        instance=$(_sjo_parse $*)
+        export "$1=$instance"
+        ;;
+    "put")
+        instance=$(_sjo_put $*)
+        export "$1=$instance"
+        ;;
+    "get")
+        echo $(_sjo_get $*)
+        ;;
+    "keys")
+        echo $(_sjo_keys $*)
+        ;;
+    "values")
+        echo $(_sjo_values $*)
+        ;;
+    esac
+}
+
+_sjo_parse() {
+    instance=${!1}
+    _exist "parse [str]" $3
+    echo $3
+    # desc=$(_sjo_descomponer $instance)
+    # if [ $desc ]; then
+    #     desc+=","
+    # fi
+    # desc+="$3:$4"
+    # echo "{$desc}"
+}
+_sjo_put() {
+    instance=${!1}
+    _exist "put [key]" $3
+    _exist "put $3 [value]" $4
+    desc=$(_sjo_descomponer $instance)
+    if [ $desc ]; then
+        desc+=","
+    fi
+    desc+="$3:$4"
+    echo "{$desc}"
+}
+
+_sjo_descomponer() {
+    if [[ "$1" =~ {(.*)}$ ]]; then
+        echo ${BASH_REMATCH[1]}
+    fi
+    echo ""
+}
+_sjo_keys() {
+    instance=${!1}
+    instance=$(sed "s/[{]/ /g" <<<"$instance")
+    instance=$(sed "s/[}]/ }/g" <<<"$instance")
+    lvl=0
+    for obj in ${instance[@]}; do
+        IFS="," read -a arr <<<"$obj"
+        for obj in ${arr[@]}; do
+            key=${obj%:*}
+            value=${obj#*:}
+            if [ $key = "}" ]; then
+                lvl=$(($lvl - 1))
+            fi
+            if [ ! $value ]; then
+                lvl=$(($lvl + 1))
+            fi
+            if [ $lvl = 0 ]; then
+                echo $key
+            fi
+        done
+    done
+}
+_sjo_values() {
+    instance=${!1}
+    desc=$(_sjo_descomponer $instance)
+    arr=${desc//\,/ }
+    for obj in $arr; do
+        key=${obj%:*}
+        value=${obj#*:}
+        echo "$value"
+    done
+}
+
+_sjo_get() {
+    _exist "get [key]" $3
+    str=${!1}
+    echo "$str" >&2
+
+    n=0
+    list=""
+    while read -n1 char; do
+        n=$((n + 1))
+        case "${char}" in
+        "{")
+            lvl=$((lvl + 1))
+            continue
+            ;;
+        "}")
+            lvl=$((lvl - 1))
+            continue
+            ;;
+        esac
+    done < <(echo -n "$str")
+    echo "$lvl" >&2
+    
+    echo $list
+}
+
+# if [[ $char = "}" ]]; then
+#     lvl=$((lvl - 1))
+#     list="$list }"
+#     group=""
+#     continue
+# fi
+# if [[ $char = "{" ]]; then
+#     lvl=$((lvl + 1))
+#     list="$list $group"
+#     group=""
+#     list="$list {"
+#     continue
+# fi
+# if [[ $char = "," ]]; then
+#     list="$list $group"
+#     echo "$group" >&2
+#     group=""
+#     continue
+# fi
+# group="$group$char"

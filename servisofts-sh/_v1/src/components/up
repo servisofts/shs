@@ -1,0 +1,31 @@
+#!/bin/bash
+_up_commands="up"
+_up() {
+    pids=$(ls -a ./config/ | grep "^.env\..*")
+    index=0
+    for i in $pids; do
+        index=$((index + 1))
+        val=$(echo $i | cut -d'.' -f 3)
+        eval arr[$index]=$val
+    done
+    entorno=${arr[1]}
+    if [[ ! $index = 1 ]]; then
+        PS3='Selecciona el entorno:'
+        select opt in "${arr[@]}"; do
+            if [[ "$opt" ]]; then
+                entorno=$opt
+                break
+            else
+                echo "ERROR: not Found"
+            fi
+        done
+    fi
+
+    if [[ ! $entrono ]]; then
+        exit
+    fi
+
+    dc_de="docker-compose.yaml"
+    sudo NAME=${entorno} docker-compose -f $dc_de --env-file ./config/.env.$entorno -p $entorno up ${2}
+
+}

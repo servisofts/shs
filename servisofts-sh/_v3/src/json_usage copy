@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#JSObject
+SJObject obj_p parse "{nombre:a,apellido:p}" #Create new json object from str
+# echo $obj_p                                  #Json object to array of values
+# echo $(SJObject obj_p get nombre)            #Get value in a key
+# SJObject obj_p get nombre
+SJObject obj new                  #Create new json object or clear current data
+SJObject obj put 'nombre' 'ricky' #Add key:value to json object instance
+SJObject obj put 'apellido' 'paz' #Add key:value to json object instance
+SJObject obj put 'data' $obj_p    #Add key:value to json object instance
+SJObject obj put 'edad' '19'      #Add key:value to json object instance
+SJObject obj put 'data2' $obj_p   #Add key:value to json object instance
+
+# echo $(SJObject obj keys)   #Json object to array of keys
+# SJObject obj get data
+
+SJObject obj2 new
+SJObject obj2 put 'alfo' 'asdpaz' #Add key:value to json object instance
+SJObject obj2 put 'objs' $obj     #Add key:value to json object instance
+SJObject obj2 put 'objssas' $obj_p     #Add key:value to json object instance
+# echo ""
+# echo $obj2
+echo $(SJObject obj2 get objs)   #Get value in a key
+# echo $(SJObject obj get nombre)   #Get value in a key
+
+exit
+echo $obj #Print json object in string
+echo ""
+echo ""
+echo $(SJObject obj keys)   #Json object to array of keys
+echo $(SJObject obj values) #Json object to array of values
+echo ""
+echo ""
+echo $(SJObject obj get nombre) #Get value in a key
+echo $(SJObject obj get data)   #Get value in a key
+exit
+#JSArray
+
+SJArray arr new           #Create new json array or clear current data
+SJArray arr put 'nombre'  #Add value to json array instance
+SJArray arr put 'nombre'  #Add value to json array instance
+SJArray arr put $obj      #Add json object to json array
+echo $arr                 #Print json array in string
+echo $(SJArray arr get 1) #Get value in a position
+
+exit
+
+# sobj opts
+# sobj opts put "-v" $(sopt -f "_help" -p "string" -s "h" -l "help")
+# echo $opts
+# echo $()
+
+# sobj cmds
+# sobj cmds put "init" "cmd/init/index"
+# sobj cmds put "help" "cmd/help/index"
+
+# sobj opts
+# sobj opts put "-h,--help" "_help,string"
+# sobj opts put "-v" "_version,string"
+
+# _version() {
+#     echo "$1"
+#     exit
+# }
+# _help() {
+#     shelp cmds opts
+#     exit
+# }
+
+# run_commands cmds 0
+# run_options opts
+
+# _help

@@ -1,0 +1,73 @@
+#!/bin/bash
+FOLDER_NAME=${PWD##*/}        # to assign to a variable
+FOLDER_NAME=${FOLDER_NAME:-/} # to correct for the case where PWD=/
+P=$@
+set -e
+
+include() {
+    source "${DIR_PATH}/lib/$1"
+}
+require() {
+    source "${DIR_PATH}/src/$1" $P
+}
+
+sopt() {
+    local obj=""
+    while getopts "f:s:l:p:" o; do
+        case "${o}" in
+        *)
+            obj+="-${o}:$OPTARG"
+            ;;
+        esac
+    done
+    # k="-f"
+    # echo "$obj" | sed "s/.*$k:\([^-]*\).*/\1/"
+    echo $obj
+}
+
+run_commands() {
+    local pos=$2
+    # sconsole -g "pos=== $pos"
+    local arr=$P
+    # arr=($P)
+    local val=(${P[pos]})
+    # echo ${!1}
+    # echo ${val}
+    arr_temp=$(JSON ${1} keys)
+    # sconsole -g "val=== $val"
+
+    # echo $arr_temp
+    for key in $arr_temp; do
+        obj=$(JSON $1 get $key)
+        name=$key
+        # sconsole -g $key
+        if [[ $name = $val ]]; then
+            require $obj
+            # echo "asdas"
+            exit
+        fi
+    done
+}
+run_options() {
+    arr_options=$(JSON $1 keys)
+    for key in $arr_options; do
+        obj=$(JSON $1 get $key)
+        s=$(JSON obj get s)
+        l=$(JSON obj get l)
+
+        for param in $P; do
+
+            if [[ $s == $param ]]; then
+                $key
+            fi
+            if [[ "$l" == "$param" ]]; then
+                $key
+            fi
+        done
+    done
+}
+
+include "sconsole/index"
+include "JSON/index"
+include "shelp/index"
+require "index"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#JSObject
+JSON obj_p parse "{alfo:asdpaz,objs:{nombre:ricky,apellido:paz,data:{nombre:a,apellido:p},edad:19,data2:{nombre:a,apellido:p}},objssas:{nombre:a,apellido:p}}" #Create new json object from str
+echo $obj_p

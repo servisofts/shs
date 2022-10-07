@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#imports
+include "sconsole/color"
+
+sconsole() {
+    local OPTIND option a
+    arr=${@:2}
+    while getopts ":l:d:w:s:a:e:g:" option; do
+        case $option in
+        l) #Log
+            echo -e "${Clean}${arr[@]}${Clean}"
+            ;;
+        s) #Succes
+            echo -e "${Blue}${arr[@]}${Clean}"
+            ;;
+        w) #Warning
+            echo -e "${Yellow}${arr[@]}${Clean}"
+            ;;
+        e) #Error
+            echo -e "${Red}${arr[@]}${Clean}"
+            ;;
+        a) #Accent
+            echo -e "${Green}${arr[@]}${Clean}"
+            ;;
+        g) #global
+            echo -e "${Cyan}${arr[@]}${Clean}" >&2
+            ;;
+        *) # display Help
+            echo -e "${Clean}$*${Clean}"
+            ;;
+        esac
+        return
+    done
+    echo -e "${Clean}$*${Clean}"
+}
