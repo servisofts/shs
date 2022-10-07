@@ -1,0 +1,59 @@
+#!/bin/bash
+sja_error() {
+    sconsole >&2 -e "SJArray $1"
+    exit
+}
+sja_exist() {
+    if [[ ! $2 ]]; then
+        sja_error "$1 , not found"
+    fi
+}
+SJArray() {
+    sja_exist "[name]" $1
+    sja_exist "[command]" $2
+    instance=${!1}
+    case "${2}" in
+    "new")
+        export "$1=[]"
+        ;;
+    "put")
+        instance=$(sja_put $*)
+        export "$1=$instance"
+        ;;
+    "get")
+        echo $(sja_get $*)
+        ;;
+    esac
+}
+
+sja_put() {
+    instance=${!1}
+    sja_exist "put [key]" $3
+    desc=$(sja_descomponer $instance)
+    if [ $desc ]; then
+        desc+=","
+    fi
+    desc+="$3"
+    echo "[$desc]"
+}
+
+sja_descomponer() {
+    if [[ "$1" =~ ^\[(.*)\]$ ]]; then
+        echo ${BASH_REMATCH[1]}
+    fi
+    echo ""
+}
+sja_get() {
+    sja_exist "get [index]" $3
+    instance=${!1}
+    desc=$(sja_descomponer $instance)
+    arr=${desc//\,/ }
+    i=(0)
+    for obj in $arr; do
+        if [ $i = $3 ]; then
+            echo "$obj"
+        fi
+        i=$(($i + 1))
+
+    done
+}

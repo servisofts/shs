@@ -1,0 +1,32 @@
+#!/bin/bash
+# _help_DESCRIPTION() {
+#    local desc="Display help information"
+#    echo "$desc"
+# }
+
+shelp() {
+   # sconsole -a "$NAME help"
+   sconsole " "
+   sconsole -w "Usage:   $NAME [OPTIONS] COMMAND"
+   sconsole " "
+   sconsole "Options:"
+   for obj in $(sobj $2 keys); do
+      method=("Description for te option ${obj}")
+      printf '%-15s' "  $obj"
+      printf '%-100s\n' "$method"
+   done
+   sconsole " "
+   sconsole "Commands:"
+   for obj in $(sobj $1 keys); do
+      method=("_${obj}_DESCRIPTION")
+      printf '%-15s' "  $obj"
+      printf '%-100s\n' "$method"
+      # printf '%-100s\n' "$($method)"
+   done
+
+   sconsole " "
+   sconsole "Run '$NAME COMMAND --help' for more information on a command."
+   sconsole " "
+   sconsole "To get more help with $NAME, check out our guides at $REPOSITORY"
+
+}

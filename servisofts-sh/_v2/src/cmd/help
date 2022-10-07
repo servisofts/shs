@@ -1,0 +1,30 @@
+#!/bin/bash
+_help_DESCRIPTION() {
+   local desc="Display help information"
+   echo "$desc"
+}
+
+_help() {
+  # console -a "$NAME help"
+   console " "
+   console "Usage:   $NAME [OPTIONS] COMMAND"
+   console " "
+   console "Options:"
+
+   console " "
+   console "Commands:"
+
+   for obj in $CMDS; do
+      method=("_${obj}_DESCRIPTION")
+      printf '%-15s' "  $obj"
+      printf '%-100s\n' "$($method)"
+   done
+
+   console " "
+   console "Run '$NAME COMMAND --help' for more information on a command."
+   console " "
+   console "To get more help with $NAME, check out our guides at $REPOSITORY"
+
+}
+
+export_cmd "help"

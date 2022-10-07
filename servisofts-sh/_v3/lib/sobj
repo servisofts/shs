@@ -1,0 +1,98 @@
+#!/bin/bash
+
+sobj() {
+    local resp=()
+    if [[ ! $1 ]]; then
+        # Si no tiene el parametro nombre
+        console >&2 -e "Exception | sobj [NAME]"
+        console >&2 -e "NAME not found!"
+        exit 1
+        return
+    fi
+    instance=${!1}
+    if [[ ! $2 ]]; then
+        # Si solo tiene el parametro nombre
+        # if [[ $instance ]]; then
+        #     console >&2 -e "Exception | sobj [NAME]"
+        #     console >&2 -e "NAME already defined!"
+        #     exit 1
+        # fi
+        resp=""
+        export "$1=$resp"
+
+        return
+    fi
+    if [[ $2 = "put" ]]; then
+        if [[ ! $3 ]]; then
+            console >&2 -e "Exception | sobj put [KEY] [VALUE]"
+            console >&2 -e "Key not found!"
+            exit 1
+        fi
+        if [[ ! $4 ]]; then
+            console >&2 -e "Exception | sobj put [KEY] [VALUE]"
+            console >&2 -e "Value not found!"
+            exit 1
+        fi
+        newArr=()
+        exito=""
+        for obj in $instance; do
+            KEY=${obj%:*}
+            VAL=${obj#*:}
+            if [[ $KEY = $3 ]]; then
+                newArr+=" $3:$4 "
+                exito="true"
+            else
+                newArr+=" $obj "
+            fi
+        done
+        if [[ ! $exito ]]; then
+            newArr+=" $3:$4 "
+        fi
+        export "$1=$newArr"
+        # resp+="$3:$4"
+        # echo "${resp} "
+        return
+    fi
+    if [[ $2 = "get" ]]; then
+        if [[ ! $3 ]]; then
+            # console >&2 -e "Exception | sobj get [KEY]"
+            # console >&2 -e "Key not found!"
+            # exit 1
+            return
+        fi
+        for obj in $instance; do
+            KEY=${obj%:*}
+            VAL=${obj#*:}
+            if [[ $KEY = $3 ]]; then
+                echo $VAL
+                return
+            fi
+        done
+    fi
+    if [[ $2 = "values" ]]; then
+        resp=""
+        for obj in $instance; do
+            KEY=${obj%:*}
+            VAL=${obj#*:}
+            resp+=" $VAL "
+        done
+        echo ${resp}
+    fi
+    if [[ $2 = "keys" ]]; then
+        resp=""
+        for obj in $instance; do
+            KEY=${obj%:*}
+            VAL=${obj#*:}
+            resp+=" $KEY "
+        done
+        echo ${resp}
+    fi
+
+}
+
+# EXAMPLE
+# sobj commands
+# sobj "commands" put "init" "cmd/init"
+
+# echo ${commands}
+# echo $(sobj "commands" get "init")

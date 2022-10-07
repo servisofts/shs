@@ -1,0 +1,10 @@
+#!/bin/bash
+
+NAME='svs' #Version
+VERSION='1.0.1' #Version
+
+RPATH=$(dirname "$0")
+source "${RPATH}/kernel"
+
+require "index"
+_index $*

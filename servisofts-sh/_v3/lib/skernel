@@ -1,0 +1,60 @@
+#!/bin/bash
+FOLDER_NAME=${PWD##*/}        # to assign to a variable
+FOLDER_NAME=${FOLDER_NAME:-/} # to correct for the case where PWD=/
+P=$@
+set -e
+
+include() {
+    source "${DIR_PATH}/lib/$1"
+}
+require() {
+    source "${DIR_PATH}/src/$1" $P
+}
+
+run_commands() {
+    pos=$2
+    arr=($P)
+    val=(${arr[pos]})
+    cmd=$(sobj $1 get $val)
+    if [ $cmd ]; then
+        require "$cmd"
+        exit
+    fi
+}
+run_options() {
+    for key in $P; do
+        arr=$(sobj $1 keys)
+        for obj in $arr; do
+            short=${obj%,*}
+            large=${obj#*,}
+            if [[ $short = $key || $large = $key ]]; then
+                final_key="$short"
+                if [[ ! $large = $short ]]; then
+                    final_key="$final_key,$large"
+                fi
+
+                obj_param=$(sobj $1 get $final_key)
+                if [ $obj_param ]; then
+                    func=${obj_param%,*}
+                    param=${obj_param#*,}
+                    if [[ ! $func = $param ]]; then
+                        
+                        $func $param
+                    else
+                        $func
+                    fi
+
+                fi
+            fi
+        done
+
+    done
+}
+
+include "sconsole"
+include "sobj"
+include "sopt"
+include "SJObject"
+include "SJArray"
+include "shelp"
+require "index"

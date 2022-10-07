@@ -1,0 +1,35 @@
+#!/bin/bash
+FOLDER_NAME=${PWD##*/}        # to assign to a variable
+FOLDER_NAME=${FOLDER_NAME:-/} # to correct for the case where PWD=/
+
+arr_opts=()
+
+require() {
+    source "${RPATH}/src/$1"
+}
+
+
+
+initOpts() {
+    while getopts ':' option; do
+        arr_opts+="$option"
+    done
+
+}
+getOpt() {
+
+    local resp="${arr_opts}"
+
+    echo "$resp"
+}
+isOpt() {
+    local resp=()
+    while getopts ':v' option; do
+        if [[ $option = "$1" ]]; then
+            resp+=$i
+        fi
+    done
+    echo $resp
+}
+
+# initOpts $*

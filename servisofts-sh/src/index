@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#commands
+JSON commands new
+JSON commands put "server" "cmd/server/index"
+
+
+#OPTIONS
+JSON options new
+JSON options put "_help" '{
+    s:-h,
+    l:--help,
+}'
+JSON options put "_version" '{
+    s:-v,
+    l:--version,
+}'
+
+_help() {
+    shelp options commands 0
+    exit 0
+}
+_version() {
+    sconsole "svs $VERSION"
+    exit 0
+}
+
+run_commands commands "0"
+run_options options
+
+_help

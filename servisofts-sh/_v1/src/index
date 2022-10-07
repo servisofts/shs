@@ -1,0 +1,34 @@
+#!/bin/bash
+require "utils/console"
+
+require "components/help"
+require "components/version"
+require "components/init"
+require "components/up"
+
+_commands=("$_help_commands $_init_commands $_version_commands $_up_commands")
+
+_index() {
+    case $1 in
+    version)
+        _version
+        exit
+        ;;
+    help)
+        _help
+        exit
+        ;;
+    init)
+        _init
+        exit
+        ;;
+    up)
+        _up $*
+        exit
+        ;;
+    esac
+
+    _help
+    #console -e "No parameters defined set -h for help"
+    exit
+}

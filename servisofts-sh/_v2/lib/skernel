@@ -1,0 +1,28 @@
+#!/bin/bash
+FOLDER_NAME=${PWD##*/}        # to assign to a variable
+FOLDER_NAME=${FOLDER_NAME:-/} # to correct for the case where PWD=/
+CMDS=()
+
+export_cmd() {
+    CMDS+="$1 "
+}
+require() {
+    source "${DIR_PATH}/src/$1"
+}
+
+opt() {
+    local arr=()
+    local index=0
+    for obj in $@; do
+        if [[ ! $index = 0 ]]; then
+            if [[ $obj = $1 ]]; then
+                arr+="$obj "
+            fi
+        fi
+        index=$((index + 1))
+    done
+    echo ${arr}
+}
+
+
+require "index" $*

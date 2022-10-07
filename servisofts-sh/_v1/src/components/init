@@ -1,0 +1,167 @@
+#!/bin/bash
+_init_commands="init"
+
+_init() {
+  console 'This utility will walk you through creating a servisofts micro-service.'
+  console 'It only covers the most common items, and tries to guess sensible defaults.'
+  console ''
+  console 'Press ^C at any time to quit.'
+
+  name=$FOLDER_NAME
+  network="local"
+  ip="192.168.0.1"
+  number="0001"
+
+  read -p "service name: ($name) " _obj
+  if [[ ! -z "$_obj" ]]; then
+    name="$_obj"
+  fi
+
+  read -p "ip: ($ip) " _obj
+  if [[ ! -z "$_obj" ]]; then
+    ip="$_obj"
+  fi
+
+  read -p "number: ($number) " _obj
+  if [[ ! -z "$_obj" ]]; then
+    number="$_obj"
+  fi
+
+  _create_compose
+  _create_config
+  _create_entorno
+}
+
+_create_config() {
+  mkdir -p "./config"
+  cat >"./config/.env.$name" <<EOF
+IP=${ip}
+EOF
+}
+_create_entorno() {
+  mkdir -p "./entornos/$name"
+  _create_build
+  _create_nginx
+  _create_server
+  mkdir -p "./entornos/$name/files"
+}
+_create_build() {
+  mkdir -p "./entornos/$name/build"
+
+}
+
+_create_nginx() {
+  mkdir -p "./entornos/$name/nginx"
+  mkdir -p "./entornos/$name/nginx/conf.d"
+  cat >"./entornos/$name/nginx/conf.d/default.conf" <<EOF
+server{
+        location / {
+                root   /usr/share/nginx/html;
+        	       try_files \$uri /index.html;
+        }
+        location /http/ {
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade \$http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_pass "http://127.0.0.1:3${number}/";
+        }
+        location /ws/ {
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade \$http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_pass "http://127.0.0.1:2${number}/";
+        }
+   
+}
+EOF
+}
+_create_server() {
+  mkdir -p "./entornos/$name/server"
+}
+
+_create_compose() {
+  networks_h=" "
+  networks_b=" "
+  if [[ ! "$network" = "local" ]]; then
+    networks_h=$(
+      cat <<EOF
+networks: 
+  default:
+    external: true
+    name: servisofts
+EOF
+    )
+
+    networks_b=$(
+      cat <<EOF
+    networks: 
+      default: 
+        ipv4_address: \${IP}
+EOF
+    )
+
+  fi
+
+  cat >"./docker-compose.yaml" <<EOF
+version: '3.5'
+
+${networks_h}
+
+services:
+
+  ssh:
+    image: ghcr.io/linuxserver/openssh-server
+    container_name: servisofts_\${NAME}_ssh
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/La_Paz
+      - SUDO_ACCESS=true 
+      - PASSWORD_ACCESS=true 
+      - USER_PASSWORD=servisofts 
+      - USER_NAME=servisofts 
+${networks_b}
+    volumes:
+      - ./entornos/\${NAME}/ssh:/config
+      - ./entornos/\${NAME}:/servisofts
+
+  postgres:    
+    image: 'postgres:13'
+    restart: always
+    container_name: servisofts_\${NAME}_postgres
+    network_mode: "service:ssh"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./entornos/\${NAME}/postgres:/var/lib/postgresql/data
+    depends_on: 
+      - ssh
+    healthcheck:
+      test: pg_isready -U postgres
+
+  servicio:
+    image: openjdk:11-jdk-oraclelinux8
+    restart: always
+    container_name: servisofts_\${NAME}_server
+    depends_on: 
+      - postgres
+    network_mode: "service:ssh"
+    volumes:
+      - ./entornos/\${NAME}/server:/u01/server/
+      - ./entornos/\${NAME}/files:/u01/servisoftsFiles/
+    working_dir: /u01/server
+    command: java -jar server.jar
+
+  web:
+    image: nginx:latest
+    container_name: servisofts_\${NAME}_web
+    network_mode: "service:ssh"
+    depends_on: 
+      - postgres
+    restart: always
+    volumes:
+      - ./entornos/\${NAME}/build:/usr/share/nginx/html
+      - ./entornos/\${NAME}/nginx/conf.d:/etc/nginx/conf.d
+EOF
+}

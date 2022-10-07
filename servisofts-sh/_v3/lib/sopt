@@ -1,0 +1,15 @@
+#!/bin/bash
+
+sopt() {
+    local obj=""
+    while getopts "f:s:l:p:" o; do
+        case "${o}" in
+        *)
+            obj+="-${o}:$OPTARG"
+            ;;
+        esac
+    done
+    # k="-f"
+    # echo "$obj" | sed "s/.*$k:\([^-]*\).*/\1/"
+    echo $obj
+}

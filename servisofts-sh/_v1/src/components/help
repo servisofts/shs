@@ -1,0 +1,25 @@
+#!/bin/bash
+_help_commands="help"
+
+_help() {
+    
+    
+    c_header=""
+    for i in $_commands; do
+        c_header="${c_header} ${i}"
+    done
+
+
+    console " "
+    console "Usage: $NAME <command>"
+    console " "
+    console "where <command> is one of:"
+    console "   $c_header"
+    console " "
+    console "$NAME <command> -h  quick help on <command>"
+    console "   -h     Print this help."
+    console "   -v     Print version of script."
+    console " "
+    console "$NAME@$VERSION $RPATH"
+
+}

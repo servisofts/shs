@@ -1,0 +1,38 @@
+#!/bin/bash
+require "utils/console"
+
+require "cmd/help"
+require "cmd/version"
+
+cur_command=$2
+
+for obj in $CMDS; do
+    if [[ $obj = $cur_command ]]; then
+        method="_${obj} $*"
+        echo "$($method)"
+        exit
+    fi
+done
+
+# recorremos las opciones
+
+if [ $(opt -h $@) ]; then
+    _help $*
+    exit
+fi
+if [ $(opt --help $@) ]; then
+    _help $*
+    exit
+fi
+
+if [ $(opt -v $@) ]; then
+    _version $*
+    exit
+fi
+if [ $(opt --version $@) ]; then
+    _version $*
+    exit
+fi
+
+# default: mostramos help
+_help $*

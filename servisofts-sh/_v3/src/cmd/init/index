@@ -1,0 +1,25 @@
+#!/bin/bash
+
+sobj commands
+sobj commands put "help" "cmd/help/index"
+
+sobj params
+sobj params put "-h" "_help"
+sobj params put "--help" "_help"
+
+_help() {
+    console "Help for svs help [COMMANDS]"
+    console ""
+    console "Commands:"
+    console $(sobj commands keys)
+    console ""
+    console "Options:"
+    console $(sobj params keys)
+    exit
+}
+
+run_commands commands 1
+run_options params
+
+console -e "init notfound"
+# _help

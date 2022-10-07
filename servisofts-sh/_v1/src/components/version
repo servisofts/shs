@@ -1,0 +1,7 @@
+#!/bin/bash
+_version_commands="version"
+
+_version() {
+   console -a "$NAME version"
+   console "$VERSION"
+}

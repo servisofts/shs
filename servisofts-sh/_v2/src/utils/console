@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#imports
+require "utils/color"
+
+console() {
+    local OPTIND option a
+    while getopts ":l:d:w:s:a:e:" option; do
+        case $option in
+        l) #Log
+            echo -e "${Clean}${OPTARG}${Clean}"
+            ;;
+        s) #Succes
+            echo -e "${Blue}${OPTARG}${Clean}"
+            ;;
+        w) #Warning
+            echo -e "${Yellow}${OPTARG}${Clean}"
+            ;;
+        e) #Error
+            echo -e "${Red}${OPTARG}${Clean}"
+            ;;
+        a) #Accent
+            echo -e "${Green}${OPTARG}${Clean}"
+            ;;
+        *) # display Help
+            echo "console options[-l -s -w -e -a]"
+            ;;
+        esac
+        return;
+    done
+    echo -e "${Clean}${1}${Clean}"
+}

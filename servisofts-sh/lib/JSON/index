@@ -1,0 +1,208 @@
+#!/bin/bash
+_error() {
+    sconsole "JSON $1"
+    exit 1
+}
+_exist() {
+    if [[ ! $2 ]]; then
+        _error "$1 , not found"
+    fi
+}
+
+JSON() {
+    _exist "[name]" $1
+    _exist "[command]" $2
+    # instance=${!1}
+    case "${2}" in
+    "parse")
+        _json_parse $*
+        ;;
+    "new")
+        _json_new $*
+        ;;
+    "keys")
+        _json_keys $*
+        ;;
+    "values")
+        _json_values $*
+        ;;
+    "get")
+        _json_get $*
+        ;;
+    "put")
+        _json_put $*
+        ;;
+    "decompose")
+        _json_decompose $*
+        ;;
+
+    esac
+}
+
+# $1=name  $2=parse $3=json_in_str
+_json_new() {
+    # instance=${!1}
+    # _exist "parse [str]"
+    data_str="{}"
+    # _json_verify_integrity $2
+    export "$1=$data_str"
+}
+# $1=name  $2=parse $3=json_in_str
+_json_parse() {
+    # instance=${!1}
+    valt=("${@:3}")
+    data_str=${valt[*]}
+    _json_verify_integrity ${valt[*]}
+    export "$1=$data_str"
+}
+
+# $1=name  $2=keys
+_json_keys() {
+    # local instance=${!1}
+    # sconsole -g $*
+    resp=$(_json_decompose $*)
+    arr_keys=""
+    for obj in $resp; do
+        key=$(cut -d ':' -f 1 <<<"$obj")
+        # value=${obj#*\:}
+        arr_keys="$arr_keys$key"
+        arr_keys="$arr_keys "
+    done
+    echo $arr_keys
+}
+
+# $1=name  $2=values
+_json_values() {
+    # instance=${!1}
+    resp=$(_json_decompose $*)
+    arr_keys=""
+    for obj in $resp; do
+        # key=$(cut -d ':' -f 1 <<<"$obj")
+        value=$(cut -d ':' -f 2- <<<"$obj")
+        arr_keys="$arr_keys$value"
+        arr_keys="$arr_keys "
+    done
+    echo $arr_keys
+}
+# $1=name  $2=get  $3=key_str
+_json_get() {
+    # instance=${!1}
+    _exist "parse [str]" $3
+    resp=$(_json_decompose $*)
+    local arr_resp=""
+    for obj in $resp; do
+        key=$(cut -d ':' -f 1 <<<"$obj")
+        key=$(sed 's/<s>//g' <<<"${key[*]}")
+        value=$(cut -d ':' -f 2- <<<"$obj")
+        value=$(sed 's/<s>/ /g' <<<"${value[*]}")
+        if [[ $key = $3 ]]; then
+            arr_resp="${value[*]}"
+        fi
+        # arr_keys="$arr_keys "
+    done
+
+    echo -e "$arr_resp"
+}
+# $1=name  $2=put  $3=key_str $4=value
+_json_put() {
+    # instance=${!1}
+
+    params=($*)
+    # sconsole -g $params
+    _exist "parse [str]" $3
+    valt=("${@:4}")
+    val4=${valt[*]}
+    # val4=$(sed 's/?b //g' <<<"${valt[*]}")
+    # sconsole -g "${val4[*]}"
+    resp=$(_json_decompose $*)
+    json_final=""
+    exito=0
+    for obj in $resp; do
+        key=$(cut -d ':' -f 1 <<<"$obj")
+        value=$(cut -d ':' -f 2- <<<"$obj")
+        if [[ $key = $3 ]]; then
+            json_final="$json_final$key:${val4[*]},"
+            exito=1
+        else
+            json_final="$json_final$key:$value,"
+        fi
+    done
+
+    if [[ $exito = 0 ]]; then
+        json_final="$json_final$3:${val4[*]}"
+    fi
+    json_final="{$json_final}"
+    export "$1=$json_final"
+    # echo $json_final
+}
+
+# $1=json_in_str
+_json_verify_integrity() {
+    str=$*
+    list=""
+    # sconsole -g $str
+    lvl=0
+    n=0
+    while read -n1 char; do
+        n=$((n + 1))
+        case "${char}" in
+        "{")
+            lvl=$((lvl + 1))
+            continue
+            ;;
+        "}")
+            lvl=$((lvl - 1))
+            continue
+            ;;
+            # "}")
+            #     lvl=$((lvl - 1))
+            #     continue
+            #     ;;
+        esac
+    done < <(echo -n "$str")
+    if [[ lvl -ne 0 ]]; then
+        _error "_verify_integrity error"
+    fi
+}
+
+_json_decompose() {
+    instance=${!1}
+    # sconsole -g $instance
+    _json_verify_integrity $instance
+    delimiter=" "
+    arr=""
+    lvl=0
+    n=0
+    str=$(sed 's/ /<s>/g' <<<"${instance[*]}")
+    while read -rn1 char; do
+        n=$((n + 1))
+        case "${char}" in
+        "{")
+            lvl=$((lvl + 1))
+            if [[ lvl -gt "1" ]]; then
+                arr="${arr[*]}$char"
+            fi
+            continue
+            ;;
+        "}")
+            lvl=$((lvl - 1))
+            if [[ lvl -gt "0" ]]; then
+                arr="${arr[*]}$char"
+            fi
+            continue
+            ;;
+        ",")
+            if [[ lvl -eq "1" ]]; then
+                arr="${arr[*]}$delimiter"
+            else
+                arr="${arr[*]}$char"
+            fi
+            continue
+            ;;
+
+        esac
+        arr="${arr[*]}${char[*]}"
+    done < <(echo -n "${str[*]}")
+    # sconsole -g "$arr"
+    echo "${arr[*]}"
+}
